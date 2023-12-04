@@ -19,7 +19,28 @@ let getNumbers card =
 let getCountofMatches winningNumbers myNumbers =
     myNumbers |> Seq.filter (fun x -> Set.contains x winningNumbers) |> Seq.length
 
-let run filePath =
+let updateCardCounts startIndex endIndex currentCardCount (cards: seq<int * int>) =
+    cards
+    |> Seq.mapi (fun index (matchCount, cardCount) ->
+        if index >= startIndex && index <= endIndex then
+            (matchCount, currentCardCount + cardCount)
+        else
+            (matchCount, cardCount))
+
+let rec getUpdatedCards index (cards: seq<int * int>) =
+    let total = Seq.length cards
+
+    if index = total then
+        cards
+    else
+        let (currentMatchCount, currentCardCount) = Seq.item index cards
+        let startIndex = index + 1
+        let endIndex = Math.Min((index + currentMatchCount), total)
+
+        updateCardCounts startIndex endIndex currentCardCount cards
+        |> getUpdatedCards (index + 1)
+
+let runPart1 filePath =
     Utils.readFile filePath
     |> Seq.choose (fun x ->
         let winningNumbers, myNumbers = getNumbers x
@@ -30,5 +51,18 @@ let run filePath =
         | n -> Some(Math.Pow(2, float (n - 1)) |> int))
     |> Seq.sum
 
+let runPart2 filePath =
+    Utils.readFile filePath
+    |> Seq.map (fun x ->
+        let winningNumbers, myNumbers = getNumbers x
+        let countOfMatches = getCountofMatches winningNumbers myNumbers
+        countOfMatches, 1)
+    |> getUpdatedCards 0
+    |> Seq.map snd
+    |> Seq.sum
 
-run "Inputs/Day4/Input.txt" |> printfn "Total Points : %d"
+
+
+
+runPart1 "Inputs/Day4/Input_Part1.txt" |> printfn "Total Points : %d"
+runPart2 "Inputs/Day4/Input_Part2.txt" |> printfn "Total Cards : %d"
