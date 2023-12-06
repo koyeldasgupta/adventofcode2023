@@ -40,32 +40,68 @@ let getMappedInput filePath =
 
     (seeds, maps)
 
-let rec findLocation sourceId (maps: Map list list) =
-    match maps with
-    | [] -> sourceId
-    | first :: rest ->
-        let destinationId =
-            first
-            |> List.tryFind (fun x -> Range.isWithinRange x.Source sourceId)
-            |> function
-                | Some map -> map.Destination.Start + (sourceId - map.Source.Start)
-                | None -> sourceId
+module Part1 =
+    let rec findLocation (maps: Map list list) sourceId =
+        match maps with
+        | [] -> sourceId
+        | first :: rest ->
+            let destinationId =
+                first
+                |> List.tryFind (fun x -> Range.isWithinRange x.Source sourceId)
+                |> function
+                    | Some map -> map.Destination.Start + (sourceId - map.Source.Start)
+                    | None -> sourceId
 
-        findLocation destinationId rest
+            findLocation rest destinationId
 
-let runPart1 filePath =
-    let (seeds, maps) = getMappedInput filePath
-    seeds |> List.map (fun x -> findLocation x maps) |> List.min
-
-
-let runPart2 filePath =
-    let (seeds, maps) = getMappedInput filePath
-
-    seeds |> List.chunkBySize 2 |> List.map (fun x -> Range.build x[0] x[1])
+    let run filePath =
+        let (seeds, maps) = getMappedInput filePath
+        seeds |> List.map (findLocation maps) |> List.min
 
 
+module Part2 =
+    let rec findDestinationMaps (source: Range option) (maps: Map list) (destinations: Range list) =
+        match source, maps with
+        | None, _ -> destinations
+        | Some source, [] -> [ source ] @ destinations
+        | Some source, first :: rest ->
+            let left, intersect, right = Range.mapRange source first.Source
 
-// Solution.run "Day5 Part1" runPart1 "Inputs/Day5/Part1.txt"
-// Day5 Part1 completed in 9ms with result: 600279879L
+            match intersect with
+            | Some r ->
+                let startGap = r.Start - first.Source.Start
+                let endGap = first.Source.End - r.End
 
-Solution.run "Day5 Part2" runPart2 "Inputs/Day5/Example.txt"
+                [ { Start = first.Destination.Start + startGap
+                    End = first.Destination.End - endGap } ]
+                @ destinations
+            | None -> destinations
+            |> findDestinationMaps left rest
+            |> findDestinationMaps right rest
+
+    let rec findLocation (maps: Map list list) (source: Range list) =
+        match maps with
+        | [] -> source
+        | first :: rest ->
+            let destinationMaps =
+                source |> List.collect (fun x -> findDestinationMaps (Some x) first [])
+
+            findLocation rest destinationMaps
+
+
+    let run filePath =
+        let (seeds, maps) = getMappedInput filePath
+
+        let seedRanges =
+            seeds |> List.chunkBySize 2 |> List.map (fun x -> Range.build x[0] x[1])
+
+        findLocation maps seedRanges |> List.map (fun x -> x.Start) |> List.min
+
+
+
+Solution.run "Day5 Part1" Part1.run "Inputs/Day5/Part1.txt"
+//Day5 Part1 completed in 8ms with result: 600279879L
+
+
+Solution.run "Day5 Part2" Part2.run "Inputs/Day5/Part2.txt"
+//Day5 Part2 completed in 3ms with result: 20191102L
