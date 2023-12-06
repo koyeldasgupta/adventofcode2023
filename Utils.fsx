@@ -24,3 +24,12 @@ let parseInt (x: string) =
     match Int32.TryParse(x) with
     | true, n -> Some n
     | _ -> None
+
+type Range = { Start: int64; End: int64 }
+
+module Range =
+    let isWithinRange range id = id >= range.Start && id <= range.End
+
+    let build (start: int64) (rangeLength: int64) =
+        { Start = start
+          End = start + rangeLength - 1L }
