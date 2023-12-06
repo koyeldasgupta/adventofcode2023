@@ -9,6 +9,8 @@ let readFile (filePath: string) =
             yield streamReader.ReadLine()
     }
 
+let readFileAsString (filePath: string) : string = File.ReadAllText(filePath)
+
 let parseInt (x: string) =
     match Int32.TryParse(x) with
     | true, n -> Some n
