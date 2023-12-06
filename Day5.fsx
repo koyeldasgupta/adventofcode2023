@@ -59,4 +59,20 @@ let runPart1 filePath =
     let (seeds, maps) = getMappedInput filePath
     seeds |> List.map (fun x -> findLocation x maps) |> List.min
 
-runPart1 "Inputs/Day5/Example.txt" |> printfn "%A"
+
+let runPart2 filePath =
+    let (seeds, maps) = getMappedInput filePath
+
+    seeds
+    |> List.chunkBySize 2
+    |> List.collect (fun x ->
+        let ``end`` = x.[0] + x.[1] - 1L
+        [ x.[0] .. ``end`` ])
+    |> List.map (fun x -> findLocation x maps)
+    |> List.min
+
+
+Utils.Solution.run "Day5 Part1" runPart1 "Inputs/Day5/Part1.txt"
+// Day5 Part1 completed in 9ms with result: 600279879L
+
+Utils.Solution.run "Day5 Part2" runPart2 "Inputs/Day5/Part2.txt"
