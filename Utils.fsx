@@ -64,3 +64,6 @@ module Range =
                     None
 
             left, Some intersect, right
+
+module String =
+    let endsWith (suffix: string) (str: string) = str.EndsWith suffix

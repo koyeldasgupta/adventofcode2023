@@ -8,3 +8,5 @@ paket-files/
 node_modules/
 .paket/
 .idea/
+.fake
+.vscode/
